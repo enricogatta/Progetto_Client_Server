@@ -176,6 +176,25 @@ def create_chat_selection_window():
         # Richiedi la lista aggiornata delle chat
         request_chat_list()
 
+
+# === FUNZIONE PER ENTRARE IN UNA CHAT ===
+def join_chat(chat_name):
+    global current_chat
+    current_chat = chat_name
+
+    try:
+        client_socket.send(f"/joinchat:{chat_name}".encode("utf-8"))
+
+        # Nascondi la finestra di selezione
+        dpg.hide_item("chat_selection_window")
+
+        # Crea la finestra della chat
+        create_chat_window(chat_name)
+        dpg.show_item("chat_window")
+    except Exception as e:
+        dpg.set_value("chat_selection_error", f"Errore nell'accesso alla chat: {e}")
+
+
 # === CREA LA FINESTRA CHAT ===
 def create_chat_window():
     with dpg.window(label=f"Chat di Gruppo - {username}", tag="chat_window", width=520, height=600, show=False):
