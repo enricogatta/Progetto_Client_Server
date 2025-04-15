@@ -1,5 +1,8 @@
 import socket
 import threading
+import json
+import os
+import hashlib
 
 HOST = '127.0.0.1'
 PORT = 12345
@@ -14,6 +17,19 @@ server.listen()
 # Dizionario per tenere traccia dei client connessi e dei loro username
 clients = {}
 online_users = []
+
+# Carica gli utenti dal file o crea un nuovo file se non esiste
+def load_users():
+    if os.path.exists(USERS_FILE):
+        try:
+            with open(USERS_FILE, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print("Errore nel file utenti. Creazione di un nuovo file.")
+            return {}
+    else:
+        return {}
+
 
 def broadcast(message, sender_socket=None):
     for client in clients:
