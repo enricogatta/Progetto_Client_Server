@@ -17,8 +17,14 @@ server.bind((HOST, PORT))
 server.listen()
 
 # Dizionario per tenere traccia dei client connessi e dei loro username
-clients = {}
-online_users = []
+clients = {}  # socket -> username
+online_users = []  # lista username online
+user_chats = {}  # username -> chat_name
+chat_users = {"principale": []}  # chat_name -> [users]
+available_chats = ["principale"]  # lista di chat disponibili
+
+# Semaforo per limitare il numero di chat
+chat_semaphore = threading.Semaphore(5)  # Limite di 5 chat totali
 
 
 # Carica gli utenti dal file o crea un nuovo file se non esiste
