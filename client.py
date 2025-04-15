@@ -40,7 +40,7 @@ def disconnect(sender=None, app_data=None, user_data=None):
 
 # === FUNZIONE RICEZIONE MESSAGGI ===
 def receive_messages():
-    global client_socket
+    global client_socket, chat_creation_allowed
     while True:
         try:
             message = client_socket.recv(1024).decode("utf-8")
@@ -52,8 +52,16 @@ def receive_messages():
                 global username
                 username = message.split(":", 1)[1]
                 dpg.hide_item("auth_window")
-                create_chat_window()
-                dpg.show_item("chat_window")
+                create_chat_selection_window()
+                dpg.show_item("chat_selection_window")
+            elif message.startswith("CHATLIST:"):
+                # Formato: CHATLIST:chat1,chat2,chat3:true/false
+                parts = message.split(":", 2)
+                chat_list = parts[1].split(",")
+                # Controlla se l'ultimo elemento contiene info sulla possibilità di creare chat
+                if len(parts) > 2:
+                    chat_creation_allowed = parts[2].lower() == "true"
+                update_chat_list(chat_list)
             elif dpg.does_item_exist("chat_content"):
                 dpg.add_text(message, parent="chat_content", wrap=460)
                 dpg.set_y_scroll("chat_scroll", 9999)
@@ -62,7 +70,6 @@ def receive_messages():
             if dpg.does_item_exist("chat_content"):
                 dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
             break
-
 
 # === INVIO MESSAGGIO ===
 def submit_message(sender, app_data, user_data):
