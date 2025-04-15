@@ -11,6 +11,25 @@ username = ""
 client_socket = None
 receive_thread = None
 
+# === FUNZIONE DISCONNESSIONE ===
+def disconnect(sender=None, app_data=None, user_data=None):
+    global client_socket
+    try:
+        client_socket.send("/disconnect".encode("utf-8"))
+    except:
+        pass
+    # Chiudi la connessione
+    try:
+        client_socket.close()
+    except:
+        pass
+    # Chiudi la finestra chat e torna al login
+    if dpg.does_item_exist("chat_window"):
+        dpg.delete_item("chat_window")
+    # Resetta l'errore e mostra la finestra di autenticazione
+    dpg.set_value("error_text", "")
+    dpg.show_item("auth_window")
+
 
 # === FUNZIONE RICEZIONE MESSAGGI ===
 def receive_messages():
