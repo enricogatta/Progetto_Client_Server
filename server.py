@@ -39,6 +39,30 @@ def load_users():
     else:
         return {}
 
+def load_chats():
+    global chat_users, available_chats
+
+    if os.path.exists(CHATS_FILE):
+        try:
+            with open(CHATS_FILE, 'r') as f:
+                chat_data = json.load(f)
+                chat_users = chat_data.get("chat_users", {"principale": []})
+                available_chats = chat_data.get("available_chats", ["principale"])
+
+                # Assicurati che il semaforo sia correttamente inizializzato
+                global chat_semaphore
+                remaining_slots = max(0, 5 - len(available_chats))
+                chat_semaphore = threading.Semaphore(remaining_slots)
+                return
+
+        except json.JSONDecodeError:
+            print("Errore nel file chat. Creazione di un nuovo file.")
+
+    # Se non esiste o c'è un errore, inizializza con valori predefiniti
+    chat_users = {"principale": []}
+    available_chats = ["principale"]
+    save_chats()
+
 
 # Salva gli utenti nel file
 def save_users(users):
