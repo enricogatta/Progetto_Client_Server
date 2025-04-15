@@ -148,6 +148,33 @@ def register():
         dpg.set_value("error_text", f"Connessione al server fallita: {e}")
         return
 
+def create_chat_selection_window():
+    with dpg.window(label=f"Selezione Chat - {username}", tag="chat_selection_window", width=400, height=350, show=False):
+        dpg.add_text(f"Benvenuto, {username}!", color=(0, 150, 255))
+        dpg.add_text("Seleziona una chat tra quelle disponibili:")
+        dpg.add_separator()
+
+        # Contenitore per la lista delle chat disponibili
+        with dpg.group(tag="available_chats_list"):
+            # Qui verranno inserite dinamicamente le chat disponibili
+            pass
+
+        dpg.add_separator()
+
+        # Creazione nuova chat
+        with dpg.group(tag="create_chat_group", horizontal=True):
+            dpg.add_input_text(tag="new_chat_name", hint="Nome della nuova chat", width=250)
+            dpg.add_button(label="Crea", callback=create_new_chat, width=120)
+
+        dpg.add_text("", tag="creation_status", color=(200, 200, 0))
+        dpg.add_separator()
+        dpg.add_button(label="Disconnetti", callback=disconnect, width=380)
+
+        # Messaggio di errore
+        dpg.add_text("", tag="chat_selection_error", color=(255, 0, 0))
+
+        # Richiedi la lista aggiornata delle chat
+        request_chat_list()
 
 # === CREA LA FINESTRA CHAT ===
 def create_chat_window():
