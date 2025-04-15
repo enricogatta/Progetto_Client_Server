@@ -80,7 +80,7 @@ with dpg.window(label="Login", tag="login_window", width=300, height=200, no_clo
     dpg.add_text("Inserisci il tuo nome:")
     dpg.add_input_text(tag="username_input", hint="Il tuo nome")
     dpg.add_button(label="Connetti", callback=connect_to_server)
-    dpg.add_text("", tag="error_text")
+    dpg.add_text("", tag="error_text", color=(255, 0, 0))
 
 dpg.create_viewport(title="Chat Client", width=540, height=640)
 dpg.setup_dearpygui()
