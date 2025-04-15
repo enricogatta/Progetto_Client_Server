@@ -10,7 +10,6 @@ PORT = 12345
 # File per memorizzare gli utenti
 USERS_FILE = "users.json"
 
-
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
@@ -18,6 +17,7 @@ server.listen()
 # Dizionario per tenere traccia dei client connessi e dei loro username
 clients = {}
 online_users = []
+
 
 # Carica gli utenti dal file o crea un nuovo file se non esiste
 def load_users():
@@ -34,15 +34,17 @@ def load_users():
 
 # Salva gli utenti nel file
 def save_users(users):
-   with open(USERS_FILE, 'w') as f:
-       json.dump(users, f)
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f)
 
 
 # Hash della password per maggiore sicurezza
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+
 users = load_users()
+
 
 def broadcast(message, sender_socket=None):
     for client_socket in clients:
@@ -52,6 +54,11 @@ def broadcast(message, sender_socket=None):
             except:
                 # Gestito dalla funzione handle_client quando il client è disconnesso
                 pass
+
+
+def send_online_users(client_socket):
+    users_list = ", ".join(online_users)
+    client_socket.send(f"SERVER: Utenti online: {users_list}".encode("utf-8"))
 
 
 def handle_client(client_socket, username):
@@ -65,7 +72,6 @@ def handle_client(client_socket, username):
         while True:
             try:
                 message = client_socket.recv(1024).decode("utf-8")
-
                 if not message:  # Se il client si disconnette
                     break
 
@@ -80,10 +86,8 @@ def handle_client(client_socket, username):
         if client_socket in clients:
             username = clients[client_socket]
             del clients[client_socket]
-
             if username in online_users:
                 online_users.remove(username)
-
             broadcast(f"SERVER: {username} è uscito dalla chat.".encode("utf-8"))
 
         try:
@@ -104,13 +108,17 @@ def handle_auth(client_socket, address):
                     print(f"Client {address} disconnesso durante l'autenticazione")
                     client_socket.close()
                     return
+
                 print(f"Ricevuto da {address}: {auth_data}")
+
                 # Formato atteso: ACTION:username:password
                 parts = auth_data.split(":", 2)
                 if len(parts) != 3:
                     client_socket.send("ERROR:Formato non valido".encode("utf-8"))
                     continue
+
                 action, username, password = parts
+
                 if action == "LOGIN":
                     if username in users and users[username] == hash_password(password):
                         if username in online_users:
@@ -125,6 +133,7 @@ def handle_auth(client_socket, address):
                             return
                     else:
                         client_socket.send("ERROR:Username o password non validi".encode("utf-8"))
+
                 elif action == "REGISTER":
                     if username in users:
                         client_socket.send("ERROR:Username già esistente".encode("utf-8"))
@@ -140,6 +149,7 @@ def handle_auth(client_socket, address):
                         return
                 else:
                     client_socket.send("ERROR:Azione non valida".encode("utf-8"))
+
             except Exception as e:
                 print(f"Errore durante l'autenticazione: {e}")
                 client_socket.close()
@@ -150,6 +160,7 @@ def handle_auth(client_socket, address):
             client_socket.close()
         except:
             pass
+
 
 def receive_connections():
     print(f"Server in ascolto su {HOST}:{PORT}")
@@ -167,6 +178,3 @@ def receive_connections():
         server.close()
         print("Server chiuso")
 
-
-
-receive_connections()
