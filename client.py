@@ -10,6 +10,8 @@ username = ""
 # Dichiarazione globale per poterla ricreare quando necessario
 client_socket = None
 receive_thread = None
+current_chat = ""
+chat_creation_allowed = True
 
 
 # === FUNZIONE DISCONNESSIONE ===
