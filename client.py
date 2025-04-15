@@ -205,28 +205,38 @@ def request_chat_list():
 
 
 # === CREA LA FINESTRA CHAT ===
-def create_chat_window():
-    with dpg.window(label=f"Chat di Gruppo - {username}", tag="chat_window", width=520, height=600, show=False):
-        # Header con informazioni utente e pulsante disconnessione
+def create_chat_window(chat_name):
+    window_title = f"Chat: {chat_name} - {username}"
+
+    with dpg.window(label=window_title, tag="chat_window", width=520, height=600, show=False):
+        # Header con informazioni utente e pulsanti
         with dpg.group(horizontal=True):
-            dpg.add_text(f"Benvenuto, {username}!", color=(0, 150, 255))
-            dpg.add_spacer(width=150)
-            dpg.add_button(label="Disconnetti", callback=disconnect, width=120)
+            dpg.add_text(f"Chat: {chat_name}", color=(0, 150, 255))
+            dpg.add_spacer(width=120)
+            dpg.add_button(label="Torna alle chat", callback=lambda: submit_message(None, None, "/back"), width=120)
+            dpg.add_button(label="Disconnetti", callback=disconnect, width=100)
 
         # Informazioni sui comandi
         dpg.add_text("Comandi disponibili:")
         dpg.add_text("/online - Visualizza gli utenti online", color=(200, 200, 0))
+        dpg.add_text("/back - Torna alla selezione chat", color=(200, 200, 0))
         dpg.add_separator()
         dpg.add_spacing()
 
-        with dpg.child_window(tag="chat_scroll", width=500,
-                              height=380):  # Ridotto leggermente per dare spazio all'header
+        # Finestra di scroll dei messaggi
+        with dpg.child_window(tag="chat_scroll", width=500, height=380):
             with dpg.group(tag="chat_content"):
-                dpg.add_text("Connesso al server. Inizia a chattare!", color=(0, 200, 0))
+                dpg.add_text(f"Connesso alla chat '{chat_name}'. Inizia a chattare!", color=(0, 200, 0))
 
+        # Campo di input e pulsante invio
         with dpg.group(horizontal=True):
-            dpg.add_input_text(tag="msg_input", hint="Scrivi un messaggio...", width=400,
-                               on_enter=True, callback=submit_message)
+            dpg.add_input_text(
+                tag="msg_input",
+                hint="Scrivi un messaggio...",
+                width=400,
+                on_enter=True,
+                callback=submit_message
+            )
             dpg.add_button(label="Invia", callback=submit_message)
 
 
