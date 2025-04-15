@@ -69,6 +69,15 @@ def save_users(users):
     with open(USERS_FILE, 'w') as f:
         json.dump(users, f)
 
+# Salva le chat nel file
+def save_chats():
+    with open(CHATS_FILE, 'w') as f:
+        chat_data = {
+            "chat_users": chat_users,
+            "available_chats": available_chats
+        }
+        json.dump(chat_data, f)
+
 
 # Hash della password per maggiore sicurezza
 def hash_password(password):
