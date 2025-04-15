@@ -178,3 +178,9 @@ def receive_connections():
         server.close()
         print("Server chiuso")
 
+if __name__ == "__main__":
+   print("Avvio del server...")
+   try:
+       receive_connections()
+   except Exception as e:
+       print(f"Errore fatale: {e}")
