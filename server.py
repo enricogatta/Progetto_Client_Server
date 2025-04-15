@@ -10,6 +10,7 @@ PORT = 12345
 
 # File per memorizzare gli utenti
 USERS_FILE = "users.json"
+CHATS_FILE = "chats.json"
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
