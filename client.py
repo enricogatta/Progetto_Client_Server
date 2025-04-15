@@ -14,13 +14,27 @@ receive_thread = None
 
 # === FUNZIONE RICEZIONE MESSAGGI ===
 def receive_messages():
+    global client_socket
     while True:
         try:
             message = client_socket.recv(1024).decode("utf-8")
-            if dpg.does_item_exist("chat_content"):
+            if message.startswith("ERROR:"):
+                error_msg = message.split(":", 1)[1]
+                dpg.set_value("error_text", error_msg)
+                return
+            elif message.startswith("SUCCESS:"):
+                global username
+                username = message.split(":", 1)[1]
+                dpg.hide_item("auth_window")
+                create_chat_window()
+                dpg.show_item("chat_window")
+            elif dpg.does_item_exist("chat_content"):
                 dpg.add_text(message, parent="chat_content", wrap=460)
                 dpg.set_y_scroll("chat_scroll", 9999)
-        except:
+        except Exception as e:
+            print(f"Errore durante la ricezione: {e}")
+            if dpg.does_item_exist("chat_content"):
+                dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
             break
 
 # === INVIO MESSAGGIO ===
