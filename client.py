@@ -5,27 +5,31 @@ import dearpygui.dearpygui as dpg
 HOST = '127.0.0.1'
 PORT = 12345
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 username = ""
 # Dichiarazione globale per poterla ricreare quando necessario
 client_socket = None
 receive_thread = None
 
+
 # === FUNZIONE DISCONNESSIONE ===
 def disconnect(sender=None, app_data=None, user_data=None):
     global client_socket
+
     try:
         client_socket.send("/disconnect".encode("utf-8"))
     except:
         pass
+
     # Chiudi la connessione
     try:
         client_socket.close()
     except:
         pass
+
     # Chiudi la finestra chat e torna al login
     if dpg.does_item_exist("chat_window"):
         dpg.delete_item("chat_window")
+
     # Resetta l'errore e mostra la finestra di autenticazione
     dpg.set_value("error_text", "")
     dpg.show_item("auth_window")
@@ -59,9 +63,8 @@ def receive_messages():
 
 # === INVIO MESSAGGIO ===
 def submit_message(sender, app_data, user_data):
-    global username,client_socket
+    global username, client_socket
     message = dpg.get_value("msg_input").strip()
-
     if message:
         if message.startswith("/"):
             # Gestione comandi
@@ -81,7 +84,6 @@ def submit_message(sender, app_data, user_data):
                 dpg.set_y_scroll("chat_scroll", 9999)
             except:
                 dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
-
         dpg.set_value("msg_input", "")
 
 
@@ -109,6 +111,7 @@ def login():
     except Exception as e:
         dpg.set_value("error_text", f"Connessione al server fallita: {e}")
         return
+
 
 # === REGISTRAZIONE ===
 def register():
@@ -160,6 +163,7 @@ def create_chat_window():
             dpg.add_input_text(tag="msg_input", hint="Scrivi un messaggio...", width=400,
                                on_enter=True, callback=submit_message)
             dpg.add_button(label="Invia", callback=submit_message)
+
 
 # === GUI SETUP ===
 dpg.create_context()
