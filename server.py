@@ -99,6 +99,29 @@ def broadcast_to_chat(chat_name, message, sender_socket=None):
                 pass
 
 
+# Notifica a tutti gli utenti online della disponibilità di una nuova chat
+def notify_chat_change():
+    chat_list = ",".join(available_chats)
+    update_message = f"CHATLIST:{chat_list}".encode("utf-8")
+
+    for client_socket in clients:
+        try:
+            client_socket.send(update_message)
+        except:
+            # Errori gestiti altrove
+            pass
+
+
+# Invia a tutti gli utenti
+def broadcast(message, sender_socket=None):
+    for client_socket in clients:
+        if client_socket != sender_socket:
+            try:
+                client_socket.send(message)
+            except:
+                # Gestito dalla funzione handle_client quando il client è disconnesso
+                pass
+
 def send_online_users(client_socket):
     users_list = ", ".join(online_users)
     client_socket.send(f"SERVER: Utenti online: {users_list}".encode("utf-8"))
