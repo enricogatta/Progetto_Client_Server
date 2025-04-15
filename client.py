@@ -91,6 +91,32 @@ def login():
         dpg.set_value("error_text", f"Connessione al server fallita: {e}")
         return
 
+# === REGISTRAZIONE ===
+def register():
+    global username, client_socket, receive_thread
+    username = dpg.get_value("username_input")
+    password = dpg.get_value("password_input")
+
+    if username.strip() == "" or password.strip() == "":
+        dpg.set_value("error_text", "Inserisci username e password validi.")
+        return
+
+    try:
+        # Ricrea il socket
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((HOST, PORT))
+
+        # Avvia il thread per ricevere messaggi
+        receive_thread = threading.Thread(target=receive_messages, daemon=True)
+        receive_thread.start()
+
+        # Invia le credenziali di registrazione
+        client_socket.send(f"REGISTER:{username}:{password}".encode("utf-8"))
+    except Exception as e:
+        dpg.set_value("error_text", f"Connessione al server fallita: {e}")
+        return
+
+
 # === LOGIN ===
 def connect_to_server():
     global username
