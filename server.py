@@ -126,6 +126,12 @@ def send_online_users(client_socket):
     users_list = ", ".join(online_users)
     client_socket.send(f"SERVER: Utenti online: {users_list}".encode("utf-8"))
 
+def send_chat_list(client_socket):
+    chat_creation_allowed = len(available_chats) < 5
+    chats_list = ",".join(available_chats)
+    client_socket.send(f"CHATLIST:{chats_list}:{chat_creation_allowed}".encode("utf-8"))
+
+
 
 def handle_client(client_socket, username):
     try:
