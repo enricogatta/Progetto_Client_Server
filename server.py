@@ -135,11 +135,11 @@ def send_chat_list(client_socket):
 
 def handle_client(client_socket, username):
     try:
-        # Notifica a tutti che un nuovo utente è entrato
-        broadcast(f"SERVER: {username} è entrato nella chat.".encode("utf-8"))
+        # Inizialmente l'utente non è in nessuna chat
+        current_chat = None
 
-        # Invia la lista degli utenti online
-        send_online_users(client_socket)
+        # Invia la lista delle chat disponibili
+        send_chat_list(client_socket)
 
         while True:
             try:
@@ -147,20 +147,91 @@ def handle_client(client_socket, username):
                 if not message:  # Se il client si disconnette
                     break
 
-                if message.startswith("/online"):
-                    send_online_users(client_socket)
+                # Gestione comandi speciali
+                if message.startswith("/"):
+                    if message == "/online":
+                        send_online_users(client_socket)
+                    elif message == "/listchats":
+                        send_chat_list(client_socket)
+                    elif message.startswith("/joinchat:"):
+                        chat_name = message.split(":", 1)[1]
+                        if chat_name in available_chats:
+                            # Rimuovi l'utente dalla chat corrente se esiste
+                            if current_chat and username in chat_users.get(current_chat, []):
+                                chat_users[current_chat].remove(username)
+                                broadcast_to_chat(current_chat,
+                                                  f"SERVER: {username} è uscito dalla chat.".encode("utf-8"))
+
+                            # Aggiungi l'utente alla nuova chat
+                            if chat_name not in chat_users:
+                                chat_users[chat_name] = []
+
+                            chat_users[chat_name].append(username)
+                            user_chats[username] = chat_name
+                            current_chat = chat_name
+
+                            # Notifica nella chat che un nuovo utente è entrato
+                            broadcast_to_chat(chat_name,
+                                              f"SERVER: {username} è entrato nella chat.".encode("utf-8"))
+
+                            # Invia lista utenti nella chat
+                            chat_users_list = ", ".join(chat_users.get(chat_name, []))
+                            client_socket.send(
+                                f"SERVER: Utenti nella chat '{chat_name}': {chat_users_list}".encode("utf-8"))
+                        else:
+                            client_socket.send(f"SERVER: La chat '{chat_name}' non esiste.".encode("utf-8"))
+
+                    elif message.startswith("/createchat:"):
+                        chat_name = message.split(":", 1)[1]
+                        if chat_name in available_chats:
+                            client_socket.send(f"SERVER: La chat '{chat_name}' esiste già.".encode("utf-8"))
+                        elif len(available_chats) >= 5:
+                            client_socket.send(f"SERVER: Numero massimo di chat (5) raggiunto.".encode("utf-8"))
+                        else:
+                            # Utilizzo del semaforo per controllare il numero di chat
+                            if chat_semaphore.acquire(blocking=False):
+                                available_chats.append(chat_name)
+                                chat_users[chat_name] = []
+                                save_chats()
+                                client_socket.send(f"SERVER: Chat '{chat_name}' creata con successo.".encode("utf-8"))
+
+                                # Notifica tutti gli utenti online della nuova chat disponibile
+                                notify_chat_change()
+                            else:
+                                client_socket.send(f"SERVER: Numero massimo di chat (5) raggiunto.".encode("utf-8"))
+
+                    elif message == "/disconnect":
+                        break
+
+                # Messaggi normali
+                elif current_chat:
+                    broadcast_to_chat(current_chat, message.encode("utf-8"), sender_socket=client_socket)
                 else:
-                    broadcast(message.encode("utf-8"), sender_socket=client_socket)
-            except:
+                    # Se l'utente non è in nessuna chat, invia un messaggio di errore
+                    client_socket.send("SERVER: Non sei in nessuna chat. Unisciti prima a una chat.".encode("utf-8"))
+
+            except Exception as e:
+                print(f"Errore nella gestione del client: {e}")
                 break
+
     finally:
-        # Rimuovi il client disconnesso
+        # Rimuovi il client disconnesso da tutte le strutture dati
         if client_socket in clients:
             username = clients[client_socket]
             del clients[client_socket]
+
             if username in online_users:
                 online_users.remove(username)
-            broadcast(f"SERVER: {username} è uscito dalla chat.".encode("utf-8"))
+
+            # Rimuovi l'utente da tutte le chat
+            for chat_name, users_list in chat_users.items():
+                if username in users_list:
+                    users_list.remove(username)
+                    broadcast_to_chat(chat_name, f"SERVER: {username} è uscito dalla chat.".encode("utf-8"))
+
+            # Rimuovi dalla mappatura user_chats
+            if username in user_chats:
+                del user_chats[username]
 
         try:
             client_socket.close()
@@ -168,6 +239,8 @@ def handle_client(client_socket, username):
             pass
 
         print(f"Cliente {username} disconnesso")
+
+
 
 
 def handle_auth(client_socket, address):
