@@ -45,14 +45,14 @@ def hash_password(password):
 users = load_users()
 
 def broadcast(message, sender_socket=None):
-    for client in clients:
-        if client != sender_socket:
+    for client_socket in clients:
+        if client_socket != sender_socket:
             try:
-                client.send(message)
+                client_socket.send(message)
             except:
-                client.close()
-                if client in clients:
-                    clients.remove(client)
+                # Gestito dalla funzione handle_client quando il client è disconnesso
+                pass
+
 
 def handle_client(client):
     while True:
