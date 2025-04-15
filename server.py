@@ -85,11 +85,13 @@ def hash_password(password):
 
 
 users = load_users()
+load_chats()
 
-
-def broadcast(message, sender_socket=None):
-    for client_socket in clients:
-        if client_socket != sender_socket:
+# Invia messaggio solo agli utenti in una specifica chat
+def broadcast_to_chat(chat_name, message, sender_socket=None):
+    usernames_in_chat = chat_users.get(chat_name, [])
+    for client_socket, username in clients.items():
+        if client_socket != sender_socket and username in usernames_in_chat:
             try:
                 client_socket.send(message)
             except:
