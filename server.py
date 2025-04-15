@@ -10,10 +10,6 @@ PORT = 12345
 # File per memorizzare gli utenti
 USERS_FILE = "users.json"
 
-# Salva gli utenti nel file
-def save_users(users):
-   with open(USERS_FILE, 'w') as f:
-       json.dump(users, f)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -35,6 +31,18 @@ def load_users():
     else:
         return {}
 
+
+# Salva gli utenti nel file
+def save_users(users):
+   with open(USERS_FILE, 'w') as f:
+       json.dump(users, f)
+
+
+# Hash della password per maggiore sicurezza
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+users = load_users()
 
 def broadcast(message, sender_socket=None):
     for client in clients:
