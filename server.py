@@ -153,11 +153,20 @@ def handle_auth(client_socket, address):
 
 def receive_connections():
     print(f"Server in ascolto su {HOST}:{PORT}")
-    while True:
-        client, address = server.accept()
-        print(f"Connesso con {address}")
-        clients.append(client)
-        thread = threading.Thread(target=handle_client, args=(client,))
-        thread.start()
+    try:
+        while True:
+            client_socket, address = server.accept()
+            print(f"Connesso con {address}")
+            # Avvia un thread per gestire l'autenticazione del client
+            threading.Thread(target=handle_auth, args=(client_socket, address)).start()
+    except KeyboardInterrupt:
+        print("Server interrotto")
+    except Exception as e:
+        print(f"Errore durante l'accettazione delle connessioni: {e}")
+    finally:
+        server.close()
+        print("Server chiuso")
+
+
 
 receive_connections()
