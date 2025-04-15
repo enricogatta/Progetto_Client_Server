@@ -145,11 +145,18 @@ def create_chat_window():
 # === GUI SETUP ===
 dpg.create_context()
 
-with dpg.window(label="Login", tag="login_window", width=300, height=200, no_close=True):
-    dpg.add_text("Inserisci il tuo nome:")
-    dpg.add_input_text(tag="username_input", hint="Il tuo nome")
-    dpg.add_button(label="Connetti", callback=connect_to_server)
+with dpg.window(label="Accesso", tag="auth_window", width=400, height=300, no_close=True):
+    dpg.add_text("Inserisci le tue credenziali:")
+    dpg.add_input_text(tag="username_input", label="Username", hint="Il tuo username", width=300)
+    dpg.add_input_text(tag="password_input", label="Password", hint="La tua password", password=True, width=300)
+
+    with dpg.group(horizontal=True):
+        dpg.add_button(label="Login", callback=login, width=150)
+        dpg.add_button(label="Registrati", callback=register, width=150)
+
     dpg.add_text("", tag="error_text", color=(255, 0, 0))
+    dpg.add_separator()
+    dpg.add_text("Benvenuto nel servizio di chat! Registrati o effettua il login per iniziare.", wrap=380)
 
 dpg.create_viewport(title="Chat Client", width=540, height=640)
 dpg.setup_dearpygui()
