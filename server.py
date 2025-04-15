@@ -163,71 +163,58 @@ def handle_client(client_socket, username):
 
         print(f"Cliente {username} disconnesso")
 
-        def handle_auth(client_socket, address):
-            print(f"Gestione autenticazione per {address}")
+
+def handle_auth(client_socket, address):
+    print(f"Gestione autenticazione per {address}")
+    try:
+        while True:
             try:
-                while True:
-                    try:
-                        auth_data = client_socket.recv(1024).decode("utf-8")
-                        if not auth_data:
-                            print(f"Client {address} disconnesso durante l'autenticazione")
-                            client_socket.close()
-                            return
-
-                        print(f"Ricevuto da {address}: {auth_data}")
-
-                        # Formato atteso: ACTION:username:password
-                        parts = auth_data.split(":", 2)
-                        if len(parts) != 3:
-                            client_socket.send("ERROR:Formato non valido".encode("utf-8"))
-                            continue
-
-                        action, username, password = parts
-
-                        if action == "LOGIN":
-                            if username in users and users[username] == hash_password(password):
-                                if username in online_users:
-                                    client_socket.send("ERROR:Utente già connesso".encode("utf-8"))
-                                else:
-                                    client_socket.send(f"SUCCESS:{username}".encode("utf-8"))
-                                    clients[client_socket] = username
-                                    online_users.append(username)
-                                    print(f"Utente {username} connesso")
-                                    # Avvia il thread per gestire i messaggi del client
-                                    threading.Thread(target=handle_client, args=(client_socket, username)).start()
-                                    return
-                            else:
-                                client_socket.send("ERROR:Username o password non validi".encode("utf-8"))
-
-                        elif action == "REGISTER":
-                            if username in users:
-                                client_socket.send("ERROR:Username già esistente".encode("utf-8"))
-                            else:
-                                users[username] = hash_password(password)
-                                save_users(users)
-                                client_socket.send(f"SUCCESS:{username}".encode("utf-8"))
-                                clients[client_socket] = username
-                                online_users.append(username)
-                                print(f"Nuovo utente registrato: {username}")
-                                # Avvia il thread per gestire i messaggi del client
-                                threading.Thread(target=handle_client, args=(client_socket, username)).start()
-                                return
-
-                        else:
-                            client_socket.send("ERROR:Azione non valida".encode("utf-8"))
-
-                    except Exception as e:
-                        print(f"Errore durante l'autenticazione: {e}")
-                        client_socket.close()
-                        return
-
-            except Exception as e:
-                print(f"Errore critico durante l'autenticazione: {e}")
-                try:
+                auth_data = client_socket.recv(1024).decode("utf-8")
+                if not auth_data:
+                    print(f"Client {address} disconnesso durante l'autenticazione")
                     client_socket.close()
-                except:
-                    pass
+                    return
 
+                print(f"Ricevuto da {address}: {auth_data}")
+
+                # Formato atteso: ACTION:username:password
+                parts = auth_data.split(":", 2)
+                if len(parts) != 3:
+                    client_socket.send("ERROR:Formato non valido".encode("utf-8"))
+                    continue
+
+                action, username, password = parts
+
+                if action == "LOGIN":
+                    if username in users and users[username] == hash_password(password):
+                        if username in online_users:
+                            client_socket.send("ERROR:Utente già connesso".encode("utf-8"))
+                        else:
+                            client_socket.send(f"SUCCESS:{username}".encode("utf-8"))
+                            clients[client_socket] = username
+                            online_users.append(username)
+                            print(f"Utente {username} connesso")
+                            # Avvia il thread per gestire i messaggi del client
+                            threading.Thread(target=handle_client, args=(client_socket, username)).start()
+                            return
+                    else:
+                        client_socket.send("ERROR:Username o password non validi".encode("utf-8"))
+
+                elif action == "REGISTER":
+                    if username in users:
+                        client_socket.send("ERROR:Username già esistente".encode("utf-8"))
+                    else:
+                        users[username] = hash_password(password)
+                        save_users(users)
+                        client_socket.send(f"SUCCESS:{username}".encode("utf-8"))
+                        clients[client_socket] = username
+                        online_users.append(username)
+                        print(f"Nuovo utente registrato: {username}")
+                        # Avvia il thread per gestire i messaggi del client
+                        threading.Thread(target=handle_client, args=(client_socket, username)).start()
+                        return
+                else:
+                    client_socket.send("ERROR:Azione non valida".encode("utf-8"))
 
             except Exception as e:
                 print(f"Errore durante l'autenticazione: {e}")
