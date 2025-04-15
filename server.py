@@ -54,17 +54,44 @@ def broadcast(message, sender_socket=None):
                 pass
 
 
-def handle_client(client):
-    while True:
+def handle_client(client_socket, username):
+    try:
+        # Notifica a tutti che un nuovo utente è entrato
+        broadcast(f"SERVER: {username} è entrato nella chat.".encode("utf-8"))
+
+        # Invia la lista degli utenti online
+        send_online_users(client_socket)
+
+        while True:
+            try:
+                message = client_socket.recv(1024).decode("utf-8")
+
+                if not message:  # Se il client si disconnette
+                    break
+
+                if message.startswith("/online"):
+                    send_online_users(client_socket)
+                else:
+                    broadcast(message.encode("utf-8"), sender_socket=client_socket)
+            except:
+                break
+    finally:
+        # Rimuovi il client disconnesso
+        if client_socket in clients:
+            username = clients[client_socket]
+            del clients[client_socket]
+
+            if username in online_users:
+                online_users.remove(username)
+
+            broadcast(f"SERVER: {username} è uscito dalla chat.".encode("utf-8"))
+
         try:
-            msg = client.recv(1024)
-            if msg:
-                broadcast(msg, sender_socket=client)
+            client_socket.close()
         except:
-            if client in clients:
-                clients.remove(client)
-            client.close()
-            break
+            pass
+
+        print(f"Cliente {username} disconnesso")
 
 def receive_connections():
     print(f"Server in ascolto su {HOST}:{PORT}")
