@@ -7,6 +7,10 @@ PORT = 12345
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 username = ""
+# Dichiarazione globale per poterla ricreare quando necessario
+client_socket = None
+receive_thread = None
+
 
 # === FUNZIONE RICEZIONE MESSAGGI ===
 def receive_messages():
@@ -60,6 +64,32 @@ def submit_message(sender, app_data, user_data):
                 dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
 
         dpg.set_value("msg_input", "")
+
+
+# === LOGIN ===
+def login():
+    global username, client_socket, receive_thread
+    username = dpg.get_value("username_input")
+    password = dpg.get_value("password_input")
+
+    if username.strip() == "" or password.strip() == "":
+        dpg.set_value("error_text", "Inserisci username e password validi.")
+        return
+
+    try:
+        # Ricrea il socket ogni volta
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((HOST, PORT))
+
+        # Avvia il thread per ricevere messaggi
+        receive_thread = threading.Thread(target=receive_messages, daemon=True)
+        receive_thread.start()
+
+        # Invia le credenziali
+        client_socket.send(f"LOGIN:{username}:{password}".encode("utf-8"))
+    except Exception as e:
+        dpg.set_value("error_text", f"Connessione al server fallita: {e}")
+        return
 
 # === LOGIN ===
 def connect_to_server():
