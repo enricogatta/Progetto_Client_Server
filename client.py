@@ -2,16 +2,17 @@ import socket
 import threading
 import dearpygui.dearpygui as dpg
 
-#HOST = '127.0.0.1'
-HOST = '192.168.1.28'
+# Sostituisci con l'indirizzo IP del computer che esegue il server
+# Ad esempio: HOST = '192.168.1.X'
+HOST = '127.0.0.1'  # Usa questo per test locali, cambia con l'IP del server per connessioni remote
 PORT = 12345
 
 username = ""
 # Dichiarazione globale per poterla ricreare quando necessario
 client_socket = None
 receive_thread = None
-current_chat = ""
-chat_creation_allowed = True
+current_chat = ""  # Per tenere traccia della chat corrente
+chat_creation_allowed = True  # Flag per controllare se è possibile creare nuove chat
 
 
 # === FUNZIONE DISCONNESSIONE ===
@@ -29,9 +30,12 @@ def disconnect(sender=None, app_data=None, user_data=None):
     except:
         pass
 
-    # Chiudi la finestra chat e torna al login
+    # Chiudi le finestre aperte
     if dpg.does_item_exist("chat_window"):
         dpg.delete_item("chat_window")
+
+    if dpg.does_item_exist("chat_selection_window"):
+        dpg.delete_item("chat_selection_window")
 
     # Resetta l'errore e mostra la finestra di autenticazione
     dpg.set_value("error_text", "")
@@ -58,9 +62,11 @@ def receive_messages():
                 # Formato: CHATLIST:chat1,chat2,chat3:true/false
                 parts = message.split(":", 2)
                 chat_list = parts[1].split(",")
+
                 # Controlla se l'ultimo elemento contiene info sulla possibilità di creare chat
                 if len(parts) > 2:
                     chat_creation_allowed = parts[2].lower() == "true"
+
                 update_chat_list(chat_list)
             elif dpg.does_item_exist("chat_content"):
                 dpg.add_text(message, parent="chat_content", wrap=460)
@@ -71,9 +77,10 @@ def receive_messages():
                 dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
             break
 
+
 # === INVIO MESSAGGIO ===
 def submit_message(sender, app_data, user_data):
-    global username, client_socket
+    global username, client_socket, current_chat
     message = dpg.get_value("msg_input").strip()
     if message:
         if message.startswith("/"):
@@ -83,6 +90,17 @@ def submit_message(sender, app_data, user_data):
                     client_socket.send(message.encode("utf-8"))
                 except:
                     dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
+            elif message == "/back":
+                # Torna alla selezione chat
+                if dpg.does_item_exist("chat_window"):
+                    dpg.delete_item("chat_window")
+                create_chat_selection_window()
+                dpg.show_item("chat_selection_window")
+                # Informa il server che stiamo uscendo dalla chat corrente
+                try:
+                    client_socket.send(f"/leavechat:{current_chat}".encode("utf-8"))
+                except:
+                    pass
             else:
                 dpg.add_text("[SISTEMA] Comando non riconosciuto", parent="chat_content", color=(255, 255, 0))
         else:
@@ -148,8 +166,11 @@ def register():
         dpg.set_value("error_text", f"Connessione al server fallita: {e}")
         return
 
+
+# === CREA FINESTRA SELEZIONE CHAT ===
 def create_chat_selection_window():
-    with dpg.window(label=f"Selezione Chat - {username}", tag="chat_selection_window", width=400, height=350, show=False):
+    with dpg.window(label=f"Selezione Chat - {username}", tag="chat_selection_window", width=400, height=350,
+                    show=False):
         dpg.add_text(f"Benvenuto, {username}!", color=(0, 150, 255))
         dpg.add_text("Seleziona una chat tra quelle disponibili:")
         dpg.add_separator()
@@ -160,13 +181,13 @@ def create_chat_selection_window():
             pass
 
         dpg.add_separator()
-
         # Creazione nuova chat
         with dpg.group(tag="create_chat_group", horizontal=True):
             dpg.add_input_text(tag="new_chat_name", hint="Nome della nuova chat", width=250)
             dpg.add_button(label="Crea", callback=create_new_chat, width=120)
 
         dpg.add_text("", tag="creation_status", color=(200, 200, 0))
+
         dpg.add_separator()
         dpg.add_button(label="Disconnetti", callback=disconnect, width=380)
 
@@ -175,6 +196,27 @@ def create_chat_selection_window():
 
         # Richiedi la lista aggiornata delle chat
         request_chat_list()
+
+
+# === FUNZIONE PER CREARE UNA NUOVA CHAT ===
+def create_new_chat(sender=None, app_data=None, user_data=None):
+    global chat_creation_allowed
+
+    if not chat_creation_allowed:
+        dpg.set_value("chat_selection_error", "Numero massimo di chat (5) raggiunto")
+        return
+
+    chat_name = dpg.get_value("new_chat_name").strip()
+    if not chat_name:
+        dpg.set_value("chat_selection_error", "Inserisci un nome valido per la chat")
+        return
+
+    try:
+        client_socket.send(f"/createchat:{chat_name}".encode("utf-8"))
+        # Aggiorniamo la lista (la conferma arriverà dal server)
+        request_chat_list()
+    except:
+        dpg.set_value("chat_selection_error", "Errore nella creazione della chat")
 
 
 # === FUNZIONE PER ENTRARE IN UNA CHAT ===
@@ -195,13 +237,38 @@ def join_chat(chat_name):
         dpg.set_value("chat_selection_error", f"Errore nell'accesso alla chat: {e}")
 
 
+# === AGGIORNA LISTA CHAT ===
+def update_chat_list(chat_list):
+    global chat_creation_allowed
+
+    # Pulisci la lista attuale
+    if dpg.does_item_exist("available_chats_list"):
+        dpg.delete_item("available_chats_list", children_only=True)
+
+        # Aggiungi le chat dalla lista ricevuta
+        for chat in chat_list:
+            if chat.strip():  # Ignora le stringhe vuote
+                dpg.add_button(label=f"Entra in: {chat}", callback=lambda s, a, u: join_chat(u),
+                               user_data=chat, parent="available_chats_list", width=380)
+
+    # Aggiorna lo stato della creazione chat
+    if dpg.does_item_exist("creation_status"):
+        if chat_creation_allowed:
+            dpg.set_value("creation_status", "Puoi creare una nuova chat (massimo 5 chat totali)")
+            if not dpg.is_item_shown("create_chat_group"):
+                dpg.show_item("create_chat_group")
+        else:
+            dpg.set_value("creation_status", "Numero massimo di chat (5) raggiunto")
+            if dpg.is_item_shown("create_chat_group"):
+                dpg.hide_item("create_chat_group")
+
+
 # === RICHIEDI LISTA CHAT ===
 def request_chat_list():
     try:
         client_socket.send("/listchats".encode("utf-8"))
     except:
         dpg.set_value("chat_selection_error", "Impossibile ottenere la lista delle chat")
-
 
 
 # === CREA LA FINESTRA CHAT ===
@@ -223,20 +290,13 @@ def create_chat_window(chat_name):
         dpg.add_separator()
         dpg.add_spacing()
 
-        # Finestra di scroll dei messaggi
         with dpg.child_window(tag="chat_scroll", width=500, height=380):
             with dpg.group(tag="chat_content"):
                 dpg.add_text(f"Connesso alla chat '{chat_name}'. Inizia a chattare!", color=(0, 200, 0))
 
-        # Campo di input e pulsante invio
         with dpg.group(horizontal=True):
-            dpg.add_input_text(
-                tag="msg_input",
-                hint="Scrivi un messaggio...",
-                width=400,
-                on_enter=True,
-                callback=submit_message
-            )
+            dpg.add_input_text(tag="msg_input", hint="Scrivi un messaggio...", width=400,
+                               on_enter=True, callback=submit_message)
             dpg.add_button(label="Invia", callback=submit_message)
 
 
