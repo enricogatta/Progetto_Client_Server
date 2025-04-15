@@ -117,30 +117,6 @@ def register():
         return
 
 
-# === LOGIN ===
-def connect_to_server():
-    global username
-    username = dpg.get_value("username_input")
-
-    if username.strip() == "":
-
-        return
-
-    try:
-        client_socket.connect((HOST, PORT))
-        client_socket.send(f"NUOVO_UTENTE:{username}".encode("utf-8"))
-    except:
-
-        return
-
-    dpg.hide_item("login_window")
-    create_chat_window()
-    dpg.show_item("chat_window")
-
-    # Avvia il thread per ricevere messaggi
-    receive_thread = threading.Thread(target=receive_messages, daemon=True)
-    receive_thread.start()
-
 # === CREA LA FINESTRA CHAT ===
 def create_chat_window():
     with dpg.window(label="Chat di Gruppo", tag="chat_window", width=520, height=600, show=False):
