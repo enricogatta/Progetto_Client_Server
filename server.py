@@ -213,6 +213,7 @@ def handle_auth(client_socket, address):
                         # Avvia il thread per gestire i messaggi del client
                         threading.Thread(target=handle_client, args=(client_socket, username)).start()
                         return
+
                 else:
                     client_socket.send("ERROR:Azione non valida".encode("utf-8"))
 
@@ -220,12 +221,14 @@ def handle_auth(client_socket, address):
                 print(f"Errore durante l'autenticazione: {e}")
                 client_socket.close()
                 return
+
     except Exception as e:
         print(f"Errore critico durante l'autenticazione: {e}")
         try:
             client_socket.close()
         except:
             pass
+
 
 
 def receive_connections():
