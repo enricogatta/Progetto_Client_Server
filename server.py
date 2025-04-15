@@ -8,7 +8,9 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
 
-clients = []
+# Dizionario per tenere traccia dei client connessi e dei loro username
+clients = {}
+online_users = []
 
 def broadcast(message, sender_socket=None):
     for client in clients:
