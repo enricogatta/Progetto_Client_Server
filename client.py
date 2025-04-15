@@ -36,7 +36,7 @@ def receive_messages():
 
 # === INVIO MESSAGGIO ===
 def submit_message(sender, app_data, user_data):
-    global username, client_socket
+    global username,client_socket
     message = dpg.get_value("msg_input").strip()
 
     if message:
