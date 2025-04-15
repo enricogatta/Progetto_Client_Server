@@ -119,14 +119,23 @@ def register():
 
 # === CREA LA FINESTRA CHAT ===
 def create_chat_window():
-    with dpg.window(label="Chat di Gruppo", tag="chat_window", width=520, height=600, show=False):
+    with dpg.window(label=f"Chat di Gruppo - {username}", tag="chat_window", width=520, height=600, show=False):
+        # Header con informazioni utente e pulsante disconnessione
+        with dpg.group(horizontal=True):
+            dpg.add_text(f"Benvenuto, {username}!", color=(0, 150, 255))
+            dpg.add_spacer(width=150)
+            dpg.add_button(label="Disconnetti", callback=disconnect, width=120)
 
+        # Informazioni sui comandi
+        dpg.add_text("Comandi disponibili:")
+        dpg.add_text("/online - Visualizza gli utenti online", color=(200, 200, 0))
         dpg.add_separator()
         dpg.add_spacing()
 
-        with dpg.child_window(tag="chat_scroll", width=500, height=420):
+        with dpg.child_window(tag="chat_scroll", width=500,
+                              height=380):  # Ridotto leggermente per dare spazio all'header
             with dpg.group(tag="chat_content"):
-                dpg.add_text("Connesso al server. Inizia a chattare!")
+                dpg.add_text("Connesso al server. Inizia a chattare!", color=(0, 200, 0))
 
         with dpg.group(horizontal=True):
             dpg.add_input_text(tag="msg_input", hint="Scrivi un messaggio...", width=400,
