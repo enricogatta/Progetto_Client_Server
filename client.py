@@ -19,18 +19,32 @@ def receive_messages():
         except:
             break
 
+
 # === INVIO MESSAGGIO ===
 def submit_message(sender, app_data, user_data):
+    global username, client_socket
     message = dpg.get_value("msg_input").strip()
+
     if message:
-        full_msg = f"{username}: {message}"
-        try:
-            client_socket.send(full_msg.encode("utf-8"))
-            # Aggiungi il messaggio anche alla chat locale
-            dpg.add_text(full_msg, parent="chat_content", wrap=460)
-            dpg.set_y_scroll("chat_scroll", 9999)
-        except:
-            dpg.add_text("Connessione persa")
+        if message.startswith("/"):
+            # Gestione comandi
+            if message == "/online":
+                try:
+                    client_socket.send(message.encode("utf-8"))
+                except:
+                    dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
+            else:
+                dpg.add_text("[SISTEMA] Comando non riconosciuto", parent="chat_content", color=(255, 255, 0))
+        else:
+            full_msg = f"{username}: {message}"
+            try:
+                client_socket.send(full_msg.encode("utf-8"))
+                # Aggiungi il messaggio anche alla chat locale
+                dpg.add_text(full_msg, parent="chat_content", wrap=460)
+                dpg.set_y_scroll("chat_scroll", 9999)
+            except:
+                dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
+
         dpg.set_value("msg_input", "")
 
 # === LOGIN ===
