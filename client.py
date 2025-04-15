@@ -2,7 +2,8 @@ import socket
 import threading
 import dearpygui.dearpygui as dpg
 
-HOST = '127.0.0.1'
+#HOST = '127.0.0.1'
+HOST = '192.168.1.28'
 PORT = 12345
 
 username = ""
