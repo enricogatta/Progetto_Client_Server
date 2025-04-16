@@ -12,7 +12,7 @@ username = ""
 client_socket = None
 receive_thread = None
 current_chat = ""  # Per tenere traccia della chat corrente
-chat_creation_allowed = True  # Flag per controllare se è possibile creare nuove chat
+
 
 
 # === FUNZIONE DISCONNESSIONE ===
@@ -44,7 +44,7 @@ def disconnect(sender=None, app_data=None, user_data=None):
 
 # === FUNZIONE RICEZIONE MESSAGGI ===
 def receive_messages():
-    global client_socket, chat_creation_allowed
+    global client_socket
     while True:
         try:
             message = client_socket.recv(1024).decode("utf-8")
@@ -189,11 +189,7 @@ def create_chat_selection_window():
 
 # === FUNZIONE PER CREARE UNA NUOVA CHAT ===
 def create_new_chat(sender=None, app_data=None, user_data=None):
-    global chat_creation_allowed
 
-    if not chat_creation_allowed:
-        dpg.set_value("chat_selection_error", "Numero massimo di chat (5) raggiunto")
-        return
 
     chat_name = dpg.get_value("new_chat_name").strip()
     if not chat_name:
@@ -228,7 +224,7 @@ def join_chat(chat_name):
 
 # === AGGIORNA LISTA CHAT ===
 def update_chat_list(chat_list):
-    global chat_creation_allowed
+
 
     # Pulisci la lista attuale
     if dpg.does_item_exist("available_chats_list"):
@@ -239,17 +235,6 @@ def update_chat_list(chat_list):
             if chat.strip():  # Ignora le stringhe vuote
                 dpg.add_button(label=f"Entra in: {chat}", callback=lambda s, a, u: join_chat(u),
                                user_data=chat, parent="available_chats_list", width=380)
-
-    # Aggiorna lo stato della creazione chat
-    if dpg.does_item_exist("creation_status"):
-        if chat_creation_allowed:
-            dpg.set_value("creation_status", "Puoi creare una nuova chat (massimo 5 chat totali)")
-            if not dpg.is_item_shown("create_chat_group"):
-                dpg.show_item("create_chat_group")
-        else:
-            dpg.set_value("creation_status", "Numero massimo di chat (5) raggiunto")
-            if dpg.is_item_shown("create_chat_group"):
-                dpg.hide_item("create_chat_group")
 
 
 # === RICHIEDI LISTA CHAT ===

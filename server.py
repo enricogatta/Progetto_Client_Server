@@ -22,9 +22,6 @@ user_chats = {}  # username -> chat_name
 chat_users = {"principale": []}  # chat_name -> [users]
 available_chats = ["principale"]  # lista di chat disponibili
 
-# Semaforo per limitare il numero di chat
-chat_semaphore = threading.Semaphore(5)  # Limite di 5 chat totali
-
 
 # Carica gli utenti dal file o crea un nuovo file se non esiste
 def load_users():
@@ -165,17 +162,12 @@ def handle_client(client_socket, username):
                         elif len(available_chats) >= 5:
                             client_socket.send(f"SERVER: Numero massimo di chat (5) raggiunto.".encode("utf-8"))
                         else:
-                            # Utilizzo del semaforo per controllare il numero di chat
-                            if chat_semaphore.acquire(blocking=False):
-                                available_chats.append(chat_name)
-                                chat_users[chat_name] = []
-                                save_chats()
-                                client_socket.send(f"SERVER: Chat '{chat_name}' creata con successo.".encode("utf-8"))
-
-                                # Notifica tutti gli utenti online della nuova chat disponibile
-                                notify_chat_change()
-                            else:
-                                client_socket.send(f"SERVER: Numero massimo di chat (5) raggiunto.".encode("utf-8"))
+                            available_chats.append(chat_name)
+                            chat_users[chat_name] = []
+                            save_chats()
+                            client_socket.send(f"SERVER: Chat '{chat_name}' creata con successo.".encode("utf-8"))
+                            # Notifica tutti gli utenti online della nuova chat disponibile
+                            notify_chat_change()
 
                     elif message == "/disconnect":
                         break
