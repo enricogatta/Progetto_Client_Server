@@ -90,17 +90,6 @@ def submit_message(sender, app_data, user_data):
                     client_socket.send(message.encode("utf-8"))
                 except:
                     dpg.add_text("[ERRORE] Connessione persa", parent="chat_content", color=(255, 0, 0))
-            elif message == "/back":
-                # Torna alla selezione chat
-                if dpg.does_item_exist("chat_window"):
-                    dpg.delete_item("chat_window")
-                create_chat_selection_window()
-                dpg.show_item("chat_selection_window")
-                # Informa il server che stiamo uscendo dalla chat corrente
-                try:
-                    client_socket.send(f"/leavechat:{current_chat}".encode("utf-8"))
-                except:
-                    pass
             else:
                 dpg.add_text("[SISTEMA] Comando non riconosciuto", parent="chat_content", color=(255, 255, 0))
         else:
@@ -279,14 +268,12 @@ def create_chat_window(chat_name):
         # Header con informazioni utente e pulsanti
         with dpg.group(horizontal=True):
             dpg.add_text(f"Chat: {chat_name}", color=(0, 150, 255))
-            dpg.add_spacer(width=120)
-            dpg.add_button(label="Torna alle chat", callback=lambda: submit_message(None, None, "/back"), width=120)
+            dpg.add_spacer(width=240)  # Aumentato spazio per bilanciare
             dpg.add_button(label="Disconnetti", callback=disconnect, width=100)
 
         # Informazioni sui comandi
         dpg.add_text("Comandi disponibili:")
         dpg.add_text("/online - Visualizza gli utenti online", color=(200, 200, 0))
-        dpg.add_text("/back - Torna alla selezione chat", color=(200, 200, 0))
         dpg.add_separator()
         dpg.add_spacing()
 
