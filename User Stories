@@ -1,6 +1,4 @@
-Come cliente, voglio poter accedere alla chat di prenotazione del ristorante tramite un'applicazione client, in modo da poter comunicare facilmente con il ristorante.
-Come cliente, voglio poter visualizzare il menu del ristorante nella chat, in modo da poter scegliere i piatti da prenotare.
-Come cliente, voglio poter prenotare un tavolo tramite la chat, in modo da poter pianificare la mia visita al ristorante.
-Come cliente, voglio poter modificare o cancellare la mia prenotazione tramite la chat, in modo da poter gestire facilmente le mie prenotazioni.
-Come ristorante, voglio poter gestire le richieste di prenotazione dei clienti tramite un'applicazione server, in modo da poter organizzare le prenotazioni in modo efficiente.
-Come ristorante, voglio poter inviare messaggi ai clienti tramite la chat, in modo da poter comunicare eventuali aggiornamenti o informazioni importanti.
+Come utente, voglio poter accedere con le mie credenziali, in modo da utilizzare la chat e gestire i miei gruppi.
+Come utente, voglio poter partecipare a chat di gruppo, in modo da comunicare con persone che condividono i miei interessi.
+Come utente, voglio poter creare gruppi tematici, in modo da organizzare conversazioni su argomenti specifici.
+Come utente, voglio poter comunicare con altre persone in tempo reale.

@@ -35,8 +35,6 @@ def load_users():
     else:
         return {}
 
-
-
 # Salva gli utenti nel file
 def save_users(users):
     with open(USERS_FILE, 'w') as f:
