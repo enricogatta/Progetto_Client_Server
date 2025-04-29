@@ -35,6 +35,7 @@ def load_users():
     else:
         return {}
 
+
 # Salva gli utenti nel file
 def save_users(users):
     with open(USERS_FILE, 'w') as f:
@@ -154,6 +155,24 @@ def handle_client(client_socket, username):
                                 f"SERVER: Utenti nella chat '{chat_name}': {chat_users_list}".encode("utf-8"))
                         else:
                             client_socket.send(f"SERVER: La chat '{chat_name}' non esiste.".encode("utf-8"))
+
+                    elif message.startswith("/leavechat:"):
+                        chat_name = message.split(":", 1)[1]
+                        if current_chat == chat_name and username in chat_users.get(chat_name, []):
+                            # Rimuovi l'utente dalla chat
+                            chat_users[chat_name].remove(username)
+                            broadcast_to_chat(chat_name,
+                                              f"SERVER: {username} è uscito dalla chat.".encode("utf-8"))
+
+                            # Aggiorna lo stato dell'utente
+                            if username in user_chats:
+                                del user_chats[username]
+                            current_chat = None
+
+                            # Invia la lista delle chat disponibili
+                            send_chat_list(client_socket)
+                        else:
+                            client_socket.send(f"SERVER: Non sei nella chat '{chat_name}'.".encode("utf-8"))
 
                     elif message.startswith("/createchat:"):
                         chat_name = message.split(":", 1)[1]
