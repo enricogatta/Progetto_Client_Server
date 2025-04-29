@@ -3,7 +3,7 @@ import threading
 import dearpygui.dearpygui as dpg
 
 # Sostituisci con l'indirizzo IP del computer che esegue il server
-# Ad esempio: HOST = '192.168.1.X'
+# HOST = '172.20.10.10'
 HOST = '127.0.0.1'  # Usa questo per test locali, cambia con l'IP del server per connessioni remote
 PORT = 12345
 
@@ -12,7 +12,6 @@ username = ""
 client_socket = None
 receive_thread = None
 current_chat = ""  # Per tenere traccia della chat corrente
-
 
 
 # === FUNZIONE DISCONNESSIONE ===
@@ -40,6 +39,27 @@ def disconnect(sender=None, app_data=None, user_data=None):
     # Resetta l'errore e mostra la finestra di autenticazione
     dpg.set_value("error_text", "")
     dpg.show_item("auth_window")
+
+
+# === FUNZIONE ESCI DALLA CHAT ===
+def exit_chat(sender=None, app_data=None, user_data=None):
+    global current_chat
+
+    if current_chat:
+        try:
+            # Invia il comando per lasciare la chat attuale
+            client_socket.send(f"/leavechat:{current_chat}".encode("utf-8"))
+            current_chat = ""
+        except:
+            pass
+
+    # Chiudi la finestra della chat
+    if dpg.does_item_exist("chat_window"):
+        dpg.delete_item("chat_window")
+
+    # Richiedi la lista aggiornata delle chat e mostra la finestra di selezione
+    request_chat_list()
+    dpg.show_item("chat_selection_window")
 
 
 # === FUNZIONE RICEZIONE MESSAGGI ===
@@ -189,8 +209,6 @@ def create_chat_selection_window():
 
 # === FUNZIONE PER CREARE UNA NUOVA CHAT ===
 def create_new_chat(sender=None, app_data=None, user_data=None):
-
-
     chat_name = dpg.get_value("new_chat_name").strip()
     if not chat_name:
         dpg.set_value("chat_selection_error", "Inserisci un nome valido per la chat")
@@ -224,8 +242,6 @@ def join_chat(chat_name):
 
 # === AGGIORNA LISTA CHAT ===
 def update_chat_list(chat_list):
-
-
     # Pulisci la lista attuale
     if dpg.does_item_exist("available_chats_list"):
         dpg.delete_item("available_chats_list", children_only=True)
@@ -253,7 +269,8 @@ def create_chat_window(chat_name):
         # Header con informazioni utente e pulsanti
         with dpg.group(horizontal=True):
             dpg.add_text(f"Chat: {chat_name}", color=(0, 150, 255))
-            dpg.add_spacer(width=240)  # Aumentato spazio per bilanciare
+            dpg.add_spacer(width=140)  # Ridotto spazio per fare posto al nuovo pulsante
+            dpg.add_button(label="Esci dalla Chat", callback=exit_chat, width=120)
             dpg.add_button(label="Disconnetti", callback=disconnect, width=100)
 
         # Informazioni sui comandi
