@@ -179,7 +179,32 @@ def handle_client(client_socket, username):
                         if chat_name in available_chats:
                             client_socket.send(f"SERVER: La chat '{chat_name}' esiste già.".encode("utf-8"))
                         elif len(available_chats) >= 5:
-                            client_socket.send(f"SERVER: Numero massimo di chat (5) raggiunto.".encode("utf-8"))
+                            # Cerca una chat vuota da sostituire
+                            chat_sostituita = False
+                            for existing_chat in available_chats:
+                                # Controlla se la chat è vuota (escludendo la chat "principale")
+                                if existing_chat != "principale" and len(chat_users.get(existing_chat, [])) == 0:
+                                    # Rimuovi la chat vuota
+                                    available_chats.remove(existing_chat)
+                                    chat_users.pop(existing_chat, None)
+
+                                    # Aggiungi la nuova chat
+                                    available_chats.append(chat_name)
+                                    chat_users[chat_name] = []
+                                    save_chats()
+
+                                    client_socket.send(
+                                        f"SERVER: Chat '{chat_name}' creata con successo sostituendo la chat vuota '{existing_chat}'.".encode(
+                                            "utf-8"))
+                                    # Notifica tutti gli utenti online della nuova chat disponibile
+                                    notify_chat_change()
+                                    chat_sostituita = True
+                                    break
+
+                            if not chat_sostituita:
+                                client_socket.send(
+                                    f"SERVER: Tutte le chat sono utilizzate. Impossibile creare nuove chat.".encode(
+                                        "utf-8"))
                         else:
                             available_chats.append(chat_name)
                             chat_users[chat_name] = []
