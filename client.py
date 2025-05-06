@@ -81,16 +81,24 @@ def receive_messages():
             elif message.startswith("CHATLIST:"):
                 # Formato: CHATLIST:chat1,chat2,chat3:true/false
                 parts = message.split(":", 2)
-                chat_list = parts[1].split(",")
+                if len(parts) >= 2:  # Modifica qui per verificare che ci siano almeno 2 parti
+                    chat_list_str = parts[1].strip()  # Rimuovi eventuali spazi
+                    if chat_list_str:  # Verifica che la stringa non sia vuota
+                        chat_list = chat_list_str.split(",")
+                        # Pulisci ogni nome di chat per rimuovere spazi indesiderati
+                        chat_list = [chat.strip() for chat in chat_list if chat.strip()]
 
-                # Controlla se l'ultimo elemento contiene info sulla possibilità di creare chat
-                if len(parts) > 2:
-                    chat_creation_allowed = parts[2].lower() == "true"
+                        # Controlla se l'ultimo elemento contiene info sulla possibilità di creare chat
+                        can_create = True
+                        if len(parts) > 2:
+                            can_create = parts[2].lower() == "true"
 
-                update_chat_list(chat_list)
-            elif dpg.does_item_exist("chat_content"):
-                dpg.add_text(message, parent="chat_content", wrap=460)
-                dpg.set_y_scroll("chat_scroll", 9999)
+                        update_chat_list(chat_list)
+                    else:
+                        # Gestione caso in cui non ci sono chat disponibili
+                        update_chat_list([])
+                else:
+                    print(f"Formato CHATLIST non valido: {message}")
         except Exception as e:
             print(f"Errore durante la ricezione: {e}")
             if dpg.does_item_exist("chat_content"):
