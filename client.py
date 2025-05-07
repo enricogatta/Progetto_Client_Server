@@ -4,7 +4,7 @@ import dearpygui.dearpygui as dpg
 
 # Sostituisci con l'indirizzo IP del computer che esegue il server
 # HOST = '172.20.10.10'
-HOST = '127.0.0.1'  # Usa questo per test locali, cambia con l'IP del server per connessioni remote
+HOST = '172.20.10.5'  # Usa questo per test locali, cambia con l'IP del server per connessioni remote
 PORT = 12345
 
 username = ""
@@ -99,6 +99,16 @@ def receive_messages():
                         update_chat_list([])
                 else:
                     print(f"Formato CHATLIST non valido: {message}")
+            elif message.startswith("SERVER:"):
+                # Gestisci i messaggi del server
+                if dpg.does_item_exist("chat_content"):
+                    dpg.add_text(message, parent="chat_content", color=(0, 200, 0), wrap=460)
+                    dpg.set_y_scroll("chat_scroll", 9999)  # Scorri verso il basso
+            else:
+                # Gestisci i messaggi normali di chat (quelli non inviati da te)
+                if dpg.does_item_exist("chat_content"):
+                    dpg.add_text(message, parent="chat_content", wrap=460)
+                    dpg.set_y_scroll("chat_scroll", 9999)  # Scorri verso il basso
         except Exception as e:
             print(f"Errore durante la ricezione: {e}")
             if dpg.does_item_exist("chat_content"):
