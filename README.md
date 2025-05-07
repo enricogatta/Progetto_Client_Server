@@ -98,24 +98,10 @@ Mentre sei in una chat, puoi usare questi comandi:
 - Profili utente personalizzabili
 - Persistenza della cronologia dei messaggi
 
-## Licenza
-
-Questo progetto è concesso in licenza sotto la Licenza MIT - vedi il file LICENSE per i dettagli.
-
-## Contribuire
-
-I contributi sono benvenuti! Sentiti libero di inviare una Pull Request.
-
-1. Fai un fork del repository
-2. Crea il tuo branch delle funzionalità (`git checkout -b feature/funzionalita-incredibile`)
-3. Esegui il commit delle tue modifiche (`git commit -m 'Aggiungi qualche funzionalità incredibile'`)
-4. Esegui il push sul branch (`git push origin feature/funzionalita-incredibile`)
-5. Apri una Pull Request
 
 ## Ringraziamenti
 
 - Costruito con [DearPyGui](https://github.com/hoffstadt/DearPyGui)
-- Ispirato ai classici sistemi di chat IRC
 
 ## Funzionalità
 
