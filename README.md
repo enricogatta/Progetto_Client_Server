@@ -197,4 +197,3 @@ Mentre sei in una chat, puoi usare questi comandi:
 ## Ringraziamenti
 
 - Costruito con [DearPyGui](https://github.com/hoffstadt/DearPyGui)
-- Ispirato ai classici sistemi di chat IRC
